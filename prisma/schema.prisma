@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String             @id // Clerk ID
+  email            String             @unique
+  subscriptionTier SubscriptionTier    @default(FREE)
+  stripeCustomerId String?            @unique
+  analyses         CreativeAnalysis[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  AGENCY
+}
+
+model CreativeAnalysis {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id])
+  
+  // Inputs
+  platform             String   // Meta, TikTok, Google
+  headline             String?
+  primaryText          String?
+  copy                 String?
+  cta                  String?  // New: Call to Action
+  imageUrl             String?
+  videoScript          String?
+  
+  // New Audience & Goal Info
+  demographics         String?  // Age, gender, location
+  audienceInterests    String?  // Interests or niche
+  painPoints           String?  // Pain points or desires
+  campaignGoal         String?  // Awareness, traffic, etc.
+
+  // Scores (1-100)
+  hookScore            Int
+  offerScore           Int
+  ctaScore             Int
+  scrollStopScore      Int
+  conversionProbability Int
+  
+  // Psychological Triggers (JSON)
+  emotionalTriggers    Json     // e.g., { fear: 20, greed: 80, ... }
+  
+  // Analysis Results
+  summary              String
+  strengths            Json
+  weaknesses           Json
+  rewriteSuggestions   Json     // JSON structure for variations
+  fullyOptimizedCopy   String
+
+  createdAt            DateTime @default(now())
+}
